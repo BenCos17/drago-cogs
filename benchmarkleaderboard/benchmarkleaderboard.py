@@ -115,6 +115,40 @@ class BenchmarkLeaderboard(commands.Cog):
             await self.config.leaderboards.set(self.leaderboards)
             await ctx.send(f"Deleted entire {benchmark_type} benchmark leaderboard")
 
+    @benchmark.command(name="history")
+    async def benchmark_history(self, ctx, user: Optional[discord.Member] = None):
+        """View historical benchmark scores for a user
+        
+        Example: [p]benchmark history
+        Example: [p]benchmark history @Username
+        """
+        user = user or ctx.author  # Default to the command invoker if no user is mentioned
+
+        user_scores = {
+            benchmark_type: scores.get(user.id)
+            for benchmark_type, scores in self.leaderboards.items()
+            if user.id in scores
+        }
+
+        if not user_scores:
+            await ctx.send(f"No historical scores found for {user.name}.")
+            return
+
+        # Create an embed to display the user's scores
+        embed = discord.Embed(
+            title=f"Historical Benchmark Scores for {user.name}",
+            color=discord.Color.green()
+        )
+
+        for benchmark_type, score in user_scores.items():
+            embed.add_field(
+                name=benchmark_type.upper(),
+                value=f"Score: {score}",
+                inline=False
+            )
+
+        await ctx.send(embed=embed)
+
     async def cog_load(self):
         """Load leaderboard data when the cog is loaded"""
         self.leaderboards = await self.config.leaderboards() or {}
