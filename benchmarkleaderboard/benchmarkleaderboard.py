@@ -170,16 +170,23 @@ class BenchmarkLeaderboard(commands.Cog):
 
             # Sort scores in descending order
             sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-            leaderboard_text = "\n".join(
-                f"{rank + 1}. {await self.bot.fetch_user(user_id)}: {score}"
-                for rank, (user_id, score) in enumerate(sorted_scores[:3])
-            )
+            leaderboard_entries = []
 
-            embed.add_field(
-                name=f"{benchmark_type.upper()}",
-                value=leaderboard_text,
-                inline=False
-            )
+            for rank, (user_id, score) in enumerate(sorted_scores[:3]):
+                try:
+                    user = await self.bot.fetch_user(user_id)
+                    leaderboard_entries.append(f"{rank + 1}. {user.name}: {score}")
+                except discord.NotFound:
+                    # Skip users who have left the server or cannot be found
+                    continue
+
+            if leaderboard_entries:
+                leaderboard_text = "\n".join(leaderboard_entries)
+                embed.add_field(
+                    name=f"{benchmark_type.upper()}",
+                    value=leaderboard_text,
+                    inline=False
+                )
 
         await ctx.send(embed=embed)
 
