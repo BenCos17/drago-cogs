@@ -149,6 +149,40 @@ class BenchmarkLeaderboard(commands.Cog):
 
         await ctx.send(embed=embed)
 
+    @benchmark.command(name="leaderboard")
+    async def benchmark_leaderboard(self, ctx):
+        """View the leaderboard for all benchmark types
+        
+        Example: [p]benchmark leaderboard
+        """
+        if not self.leaderboards:
+            await ctx.send("No benchmark scores have been recorded yet.")
+            return
+
+        embed = discord.Embed(
+            title="Overall Benchmark Leaderboards",
+            color=discord.Color.purple()
+        )
+
+        for benchmark_type, scores in self.leaderboards.items():
+            if not scores:
+                continue
+
+            # Sort scores in descending order
+            sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+            leaderboard_text = "\n".join(
+                f"{rank + 1}. {await self.bot.fetch_user(user_id)}: {score}"
+                for rank, (user_id, score) in enumerate(sorted_scores[:3])
+            )
+
+            embed.add_field(
+                name=f"{benchmark_type.upper()}",
+                value=leaderboard_text,
+                inline=False
+            )
+
+        await ctx.send(embed=embed)
+
     async def cog_load(self):
         """Load leaderboard data when the cog is loaded"""
         self.leaderboards = await self.config.leaderboards() or {}
