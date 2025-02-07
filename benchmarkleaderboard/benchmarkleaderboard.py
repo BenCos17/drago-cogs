@@ -164,8 +164,10 @@ class BenchmarkLeaderboard(commands.Cog):
             color=discord.Color.purple()
         )
 
+        processed_types = set()
+
         for benchmark_type, scores in self.leaderboards.items():
-            if not scores:
+            if not scores or benchmark_type in processed_types:
                 continue
 
             # Sort scores in descending order
@@ -187,6 +189,8 @@ class BenchmarkLeaderboard(commands.Cog):
                     value=leaderboard_text,
                     inline=False
                 )
+
+            processed_types.add(benchmark_type)
 
         await ctx.send(embed=embed)
 
